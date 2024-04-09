@@ -8,15 +8,21 @@ import { AssetType, CompleteCallback, ProgressCallback, resLoader } from "./ResL
  * 
  * 2019-12-13 by 宝爷
  */
+
+/**
+ * 
+ * 管理资源的加载和缓存
+ * 
+ **/
 const { ccclass } = _decorator;
 
 @ccclass
 export class ResKeeper extends Component {
 
-    private resCache = new Set<Asset>();
+    private resCache = new Set<Asset>(); //私有成员变量，用于存储被缓存的资源。它使用了 ES6 中的 Set 数据结构，可以确保存储的资源是唯一的
 
     /**
-     * 开始加载资源
+     * 开始加载资源  方法用于加载资源。它接受多种不同参数组合的重载版本
      * @param bundle        assetbundle的路径
      * @param url           资源url或url数组
      * @param type          资源类型，默认为null
@@ -36,8 +42,10 @@ export class ResKeeper extends Component {
         resLoader.load.apply(resLoader, args);
     }
 
+
     /**
-     * 缓存资源
+     * 缓存资源 将资源添加到缓存中
+     * 在添加之前会检查该资源是否已经存在于缓存中，以确保不会重复添加
      * @param asset 
      */
     public cacheAsset(asset: Asset) {
@@ -56,6 +64,7 @@ export class ResKeeper extends Component {
 
     /**
      * 释放资源，组件销毁时自动调用
+     * 释放所有缓存的资源
      */
     public releaseAssets() {
         this.resCache.forEach(element => {
