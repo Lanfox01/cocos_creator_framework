@@ -37,7 +37,8 @@ export class ResKeeper extends Component {
     }
 
     /**
-     * 缓存资源
+     * 缓存资源 一般新建的时候会调用
+     * 一般这个 Asset 资源是用来实例化 这个UIView 页面用的；甚至可能是整个预制件；包括这个UIView页面
      * @param asset 
      */
     public cacheAsset(asset: Asset) {

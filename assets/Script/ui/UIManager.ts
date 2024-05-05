@@ -55,7 +55,7 @@ export class UIManager {
 
     /** UI界面缓存（key为UIId，value为UIView节点）*/
     private UICache: { [UIId: number]: UIView } = {};
-    /** UI界面栈（{UIID + UIView + UIArgs}数组）*/
+    /** UI界面栈（{UIID + UIView + UIArgs}数组）*/   // 应该是 已经存在的界面 队列
     private UIStack: UIInfo[] = [];
     /** UI待打开列表 */
     private UIOpenQueue: UIInfo[] = [];
@@ -64,6 +64,11 @@ export class UIManager {
     /** UI配置 */
     private UIConf: { [key: number]: UIConf } = {};
 
+
+    /**
+     * 以下三个回调，应该作为设计考虑，三个时间节点的对外调用做准备的。 可以不用？
+     * 打开前和打开中，中间只差一个打开界面动画，当然可能没有动画
+     * /
     /** UI打开前回调 */
     public uiOpenBeforeDelegate: UIOpenBeforeCallback | null = null;
     /** UI打开回调 */
@@ -125,7 +130,8 @@ export class UIManager {
         }
     }
 
-    /**
+    /** 
+     *  ---本函数 可能需要改进完善，  用于执行指定 UI 视图的动画，并且播放完毕之后回调
      * 自动检测动画组件以及特定动画，如存在则播放动画，无论动画是否播放，都执行回调
      * @param aniName 动画名
      * @param aniOverCallback 动画播放完成回调
@@ -145,6 +151,7 @@ export class UIManager {
     }
 
     /** 根据界面显示类型刷新显示 */
+    /* 比如 全屏？叠加显示， 单界面显示 */
     private updateUI() {
         let hideIndex: number = 0;
         let showIndex: number = this.UIStack.length - 1;
@@ -171,7 +178,7 @@ export class UIManager {
     }
 
     /**
-     * 异步加载一个UI的prefab，成功加载了一个prefab之后
+     * 异步加载一个UI的prefab，成功加载了一个prefab之后 一般需要异步加载的资源，需要设计缓冲
      * @param uiId 界面id
      * @param processCallback 加载进度回调
      * @param completeCallback 加载完成回调
@@ -185,7 +192,7 @@ export class UIManager {
             return;
         }
 
-        // 找到UI配置
+        // 找到UI配置 开始异步加载
         let uiPath = this.UIConf[uiId].prefab;
         if (null == uiPath) {
             log(`getOrCreateUI ${uiId} faile, prefab conf not found!`);
@@ -245,7 +252,7 @@ export class UIManager {
             uiCom = uiView.addComponent(UITransform);
         }
 
-        // 快速关闭界面的设置，绑定界面中的background，实现快速关闭
+        // 快速关闭界面的设置，绑定界面中的background，实现快速关闭  ??????
         if (uiView.quickClose) {
             let backGround = uiView.node.getChildByName('background');
             if (!backGround) {
@@ -263,7 +270,7 @@ export class UIManager {
             }, backGround);
         }
 
-        // 添加到场景中
+        // 添加到场景中  直接放到 Canvas 子集
         let child = director.getScene()!.getChildByName('Canvas');
         child!.addChild(uiView.node);
         uiCom!.priority = uiInfo.zOrder || this.UIStack.length;
@@ -284,6 +291,7 @@ export class UIManager {
 
         // 执行onOpen回调
         uiView.onOpen(fromUIID, uiArgs);
+      
         this.autoExecAnimation(uiView, "uiOpen", () => {
             uiView.onOpenAniOver();
             if (this.uiOpenDelegate) {
@@ -308,7 +316,8 @@ export class UIManager {
 
         let uiIndex = this.getUIIndex(uiId);
         if (-1 != uiIndex) {
-            // 重复打开了同一个界面，直接回到该界面
+            // 重复打开了同一个界面，直接回到该界面 
+            // 或者是 已经存在于 UIStack 界面队列中
             this.closeToUI(uiId, uiArgs);
             return;
         }
@@ -316,13 +325,13 @@ export class UIManager {
         // 设置UI的zOrder
         uiInfo.zOrder = this.UIStack.length + 1;
         this.UIStack.push(uiInfo);
-
+ 
         // 先屏蔽点击
         if (this.UIConf[uiId].preventTouch) {
             uiInfo.preventNode = this.preventTouch(uiInfo.zOrder);
         }
 
-        this.isOpening = true;
+        this.isOpening = true;// 接下来加载资源可能需要时间，异步之类的。 
         // 预加载资源，并在资源加载完成后自动打开界面
         this.getOrCreateUI(uiId, progressCallback, (uiView: UIView | null): void => {
             // 如果界面已经被关闭或创建失败
@@ -543,6 +552,8 @@ export class UIManager {
         return null;
     }
 
+    // 堆栈中查找指定 UI 的索引，并返回其在堆栈中的位置
+    // 如果找不到，也就是全新的，就返回 -1
     public getUIIndex(uiId: number): number {
         for (let index = 0; index < this.UIStack.length; index++) {
             const element = this.UIStack[index];

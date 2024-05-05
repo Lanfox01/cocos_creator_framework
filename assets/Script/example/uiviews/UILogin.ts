@@ -14,3 +14,13 @@ export default class UILogin extends UIView {
         uiManager.open(UIID.UINotice);
     }
 }
+
+
+/*
+ 页面的周期：
+  init();
+  onOpen();
+  onOpenAniOver();//每次界面Open动画播放完毕时回调
+
+
+*/
