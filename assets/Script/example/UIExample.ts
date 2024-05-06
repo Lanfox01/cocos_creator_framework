@@ -13,13 +13,14 @@ import { Component, _decorator } from "cc";
 
 const { ccclass, property } = _decorator;
 
+// 有多是UI 界面 这里注册下 1
 export enum UIID {
     UILogin,
     UIHall,
     UINotice,
     UIBag,
 }
-
+// 有多是UI 界面 这里注册下 2
 export let UICF: { [key: number]: UIConf } = {
     [UIID.UILogin]: { prefab: "Prefab/Login" },
     [UIID.UIHall]: { prefab: "Prefab/Hall" },

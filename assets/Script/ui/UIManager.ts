@@ -24,6 +24,7 @@ export interface UIInfo {
     uiId: number;
     uiView: UIView | null;
     uiArgs: any;
+    ////// 下面验算过程临时寄存参数；
     preventNode?: Node | null;
     zOrder?: number;
     openType?: 'quiet' | 'other';
@@ -34,9 +35,9 @@ export interface UIInfo {
 
 /** UI配置结构体 */
 export interface UIConf {
-    bundle?: string;
-    prefab: string;
-    preventTouch?: boolean;
+    bundle?: string; // bundle 名字？
+    prefab: string;  // prefab 路径
+    preventTouch?: boolean;  // 
 }
 
 export type UIOpenBeforeCallback = (uiId: number, preUIId: number) => void;
@@ -61,7 +62,7 @@ export class UIManager {
     private UIOpenQueue: UIInfo[] = [];
     /** UI待关闭列表 */
     private UICloseQueue: UIView[] = [];
-    /** UI配置 */
+    /** UI配置 */ /* 一般在初始化程序的之初 就开始配置； 内如是 主要有哪些 UI界面*/
     private UIConf: { [key: number]: UIConf } = {};
 
 
@@ -309,20 +310,20 @@ export class UIManager {
         };
 
         if (this.isOpening || this.isClosing) {
-            // 插入待打开队列
+            // 插入待打开队列  我想知道为什么打开一个队列需要时间？每一个uI 是不是可能涉及 资源加载？异步？同步？
             this.UIOpenQueue.push(uiInfo);
             return;
         }
 
         let uiIndex = this.getUIIndex(uiId);
         if (-1 != uiIndex) {
-            // 重复打开了同一个界面，直接回到该界面 
+            // 重复打开了同一个界面，直接回到该界面 就是一直关闭上面的UI，直到这个界面
             // 或者是 已经存在于 UIStack 界面队列中
             this.closeToUI(uiId, uiArgs);
             return;
         }
 
-        // 设置UI的zOrder
+        // 设置UI的zOrder 显示最上
         uiInfo.zOrder = this.UIStack.length + 1;
         this.UIStack.push(uiInfo);
  
