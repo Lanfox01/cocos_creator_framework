@@ -69,13 +69,14 @@ export class UIManager {
     /**
      * 以下三个回调，应该作为设计考虑，三个时间节点的对外调用做准备的。 可以不用？
      * 打开前和打开中，中间只差一个打开界面动画，当然可能没有动画
+     * 所有的界面回调是相同？参数呢？ 关键这三个回调  怎么初始化的？
      * /
     /** UI打开前回调 */
     public uiOpenBeforeDelegate: UIOpenBeforeCallback | null = null;
     /** UI打开回调 */
     public uiOpenDelegate: UIOpenCallback | null = null;
-    /** UI关闭回调 */
-    public uiCloseDelegate: UICloseCallback | null = null;
+    /** UI关闭回调 */  // 
+    public uiCloseDelegate: UICloseCallback | null = null;  
 
     /**
      * 初始化所有UI的配置对象
@@ -151,7 +152,7 @@ export class UIManager {
         completeCallback();
     }
 
-    /** 根据界面显示类型刷新显示 */
+    /** 根据界面显示类型刷新显示 */    /// 为什么要把剩下的界面 堆栈 再刷新一遍？
     /* 比如 全屏？叠加显示， 单界面显示 */
     private updateUI() {
         let hideIndex: number = 0;
@@ -332,10 +333,11 @@ export class UIManager {
             uiInfo.preventNode = this.preventTouch(uiInfo.zOrder);
         }
 
-        this.isOpening = true;// 接下来加载资源可能需要时间，异步之类的。 
+        this.isOpening = true;// 接下来加载资源可能需要时间，异步之类的。  标记下 isOpening
         // 预加载资源，并在资源加载完成后自动打开界面
+        // 理论上 下面这句话才是 真正的开启创建一个界面
         this.getOrCreateUI(uiId, progressCallback, (uiView: UIView | null): void => {
-            // 如果界面已经被关闭或创建失败
+            // 如果界面已经被关闭或创建失败  回复标签 isOpening 并且恢复 非屏蔽点击
             if (uiInfo.isClose || null == uiView) {
                 log(`getOrCreateUI ${uiId} faile!
                         close state : ${uiInfo.isClose} , uiView : ${uiView}`);
@@ -347,7 +349,8 @@ export class UIManager {
                 return;
             }
 
-            // 打开UI，执行配置
+            // 打开UI，执行配置   如果创建成功： 直接打开到该界面  
+            // 问 为什么 一个界面 需要这么多种参数？？
             this.onUIOpen(uiId, uiView, uiInfo, uiArgs);
             this.isOpening = false;
             this.autoExecNextUI();
@@ -465,6 +468,7 @@ export class UIManager {
 
     /**
      * 关闭界面，一直关闭到顶部为uiId的界面，为避免循环打开UI导致UI栈溢出
+     * // 顺序： 
      * @param uiId 要关闭到的uiId（关闭其顶部的ui）
      * @param uiArgs 打开的参数
      * @param bOpenSelf 
@@ -484,32 +488,32 @@ export class UIManager {
 
             let uiId = uiInfo.uiId;
             let uiView = uiInfo.uiView;
-            uiInfo.isClose = true
+            uiInfo.isClose = true    // 关闭操作顺序1 
 
-            // 回收屏蔽层
+            // 回收屏蔽层              // 关闭操作顺序2
             if (uiInfo.preventNode) {
                 uiInfo.preventNode.destroy();
                 uiInfo.preventNode = null;
             }
-
-            if (this.uiCloseDelegate) {
+            // 委托回调     关键这个回调  怎么初始化的？ // 关闭操作顺序 3 uiCloseDelegate
+            if (this.uiCloseDelegate) {     
                 this.uiCloseDelegate(uiId);
             }
 
             if (uiView) {
-                uiView.onClose()
+                uiView.onClose()                 // 关闭操作顺序 4 onClose
                 if (uiView.cache) {
-                    this.UICache[uiId] = uiView;
-                    uiView.node.removeFromParent();
+                    this.UICache[uiId] = uiView;   // 关闭操作顺序 5 加入缓存
+                    uiView.node.removeFromParent(); // 场景中移除，不可见
                 } else {
-                    uiView.releaseAssets();
-                    uiView.node.destroy();
+                    uiView.releaseAssets(); // 如果不缓存的情况，直接释放资源
+                    uiView.node.destroy(); //  销毁 node 
                 }
             }
         }
 
         this.updateUI();
-        this.UIOpenQueue = [];
+        this.UIOpenQueue = [];  /// ???? 为什么这里 被清空？？
         this.UICloseQueue = [];
         bOpenSelf && this.open(uiId, uiArgs);
     }

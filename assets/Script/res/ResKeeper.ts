@@ -12,6 +12,7 @@ import { AssetType, CompleteCallback, ProgressCallback, resLoader } from "./ResL
 /**
  * 
  * 管理资源的加载和缓存
+ *  asset.addRef()   asset.decRef()
  * 
  **/
 const { ccclass } = _decorator;

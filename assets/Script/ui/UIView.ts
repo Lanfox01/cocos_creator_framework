@@ -91,3 +91,14 @@ export class UIView extends ResKeeper {
 
     }
 }
+
+
+/*
+ 几个地方需要注意：  
+  1 几个回到顺序：
+  
+   关闭界面的时候：
+    UIManager.uiCloseDelegate >  UIView.onClose
+    
+
+*/
