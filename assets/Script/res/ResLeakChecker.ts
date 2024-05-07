@@ -7,6 +7,7 @@
 import { Asset } from "cc";
 import { ResUtil } from "./ResUtil";
 
+// 这行代码定义了一个名为 FilterCallback 的类型别名。它表示一个函数类型，该函数接受一个参数 asset，类型为 Asset，并返回一个布尔值。这个函数通常用于过滤资产。
 export type FilterCallback = (asset: Asset) => boolean;
 
 declare module "cc" {
