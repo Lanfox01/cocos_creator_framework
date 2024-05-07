@@ -10,6 +10,13 @@ import { ResUtil } from "./ResUtil";
 // 这行代码定义了一个名为 FilterCallback 的类型别名。它表示一个函数类型，该函数接受一个参数 asset，类型为 Asset，并返回一个布尔值。这个函数通常用于过滤资产。
 export type FilterCallback = (asset: Asset) => boolean;
 
+/*
+这部分代码是模块扩展的语法，它扩展了名为 "cc" 的模块。在 TypeScript 中，通过 declare module 可以扩展已存在的模块，并在其中添加新的类型定义或声明。
+在这个模块扩展中，我们对 Asset 接口进行了扩展。Asset 是 Cocos Creator 中表示资源的基础接口。
+我们为 Asset 添加了两个可选的属性：
+traceMap?: Map<string, number>;: 这是一个可选属性，表示资源的追踪映射，其中键是字符串，值是数字。它用于跟踪资源的相关信息。
+resetTrace?: () => void;: 这也是一个可选属性，表示重置资源的追踪。它是一个函数类型，没有参数和返回值。
+*/
 declare module "cc" {
     interface Asset {
         traceMap?: Map<string, number>;
