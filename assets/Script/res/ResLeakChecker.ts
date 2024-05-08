@@ -27,7 +27,7 @@ declare module "cc" {
 export class ResLeakChecker {
     public resFilter: FilterCallback | null = null;    // 资源过滤回调
     private _checking: boolean = false;
-    private traceAssets: Set<Asset> = new Set<Asset>();
+    private traceAssets: Set<Asset> = new Set<Asset>(); // 被加载追踪的资源存放集合点
 
     /**
      * 检查该资源是否符合过滤条件
@@ -49,7 +49,7 @@ export class ResLeakChecker {
      */
     public traceAsset(asset: Asset) {
         if (!asset || !this.checkFilter(asset)) {
-            return;
+            return; // 非空，并且通过筛选
         }
         if (!this.traceAssets.has(asset)) {
             asset.addRef();
@@ -64,21 +64,26 @@ export class ResLeakChecker {
      */
     public extendAsset(asset: Asset) {
         let addRefFunc = asset.addRef;
-        let decRefFunc = asset.decRef;
+        let decRefFunc = asset.decRef;  //将 asset 的 addRef 和 decRef 方法保存到局部变量 addRefFunc 和 decRefFunc 中，以便稍后恢复原始方法。
         let traceMap = new Map<string, number>();
-        asset.traceMap = traceMap;
+        asset.traceMap = traceMap;    // 用于存储引用计数追踪信息
+      
+        // 重写 asset 的 addRef 方法
+        // 在调用原始的 addRef 方法之前，获取调用栈信息，并将其作为键存储在 traceMap 中，同时增加相应的引用计数。
         asset.addRef = function (...args: any): Asset {
             let stack = ResUtil.getCallStack(1);
             let cnt = traceMap.has(stack) ? traceMap.get(stack)! + 1 : 1;
             traceMap.set(stack, cnt);
             return addRefFunc.apply(asset, args);
         }
+          //重写 asset 的 decRef 方法
         asset.decRef = function (...args: any): Asset {
             let stack = ResUtil.getCallStack(1);
             let cnt = traceMap.has(stack) ? traceMap.get(stack)! + 1 : 1;
             traceMap.set(stack, cnt);
             return decRefFunc.apply(asset, args);
         }
+        //用于重置引用计数追踪。在这个方法中，恢复原始的 addRef 和 decRef 方法，并删除 traceMap 属性。
         asset.resetTrace = () => {
             asset.addRef = addRefFunc;
             asset.decRef = decRefFunc;
@@ -96,6 +101,7 @@ export class ResLeakChecker {
         }
     }
 
+    // 释放对资源进行引用的跟踪
     public untraceAsset(asset: Asset) {
         if (this.traceAssets.has(asset)) {
             this.resetAsset(asset);
@@ -108,6 +114,7 @@ export class ResLeakChecker {
     public stopCheck() { this._checking = false; }
     public getTraceAssets(): Set<Asset> { return this.traceAssets; }
 
+    /// 回复释放所有资源？
     public reset() {
         this.traceAssets.forEach(element => {
             this.resetAsset(element);
@@ -116,6 +123,7 @@ export class ResLeakChecker {
         this.traceAssets.clear();
     }
 
+    // 输出所有追踪的资源对象的引用计数信息。
     public dump() {
         this.traceAssets.forEach(element => {
             let traceMap: Map<string, number> | undefined = element.traceMap;

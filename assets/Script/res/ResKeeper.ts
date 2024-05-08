@@ -47,6 +47,7 @@ export class ResKeeper extends Component {
     /**
      * 缓存资源 将资源添加到缓存中
      * 在添加之前会检查该资源是否已经存在于缓存中，以确保不会重复添加
+     * 应该理解 ASSET 是资源意思，不等于 显示实例化 Node 等场景对象；
      * @param asset 
      */
     public cacheAsset(asset: Asset) {

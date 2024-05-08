@@ -69,6 +69,8 @@ export class ResUtil {
 
     /**
      * 实例化一个prefab，并带自动释放功能
+     * 这里的自定义 instantiate  主要是增加了 一个额外组件 ResKeeper 用于增加缓存，并且会触发里面的 asset.addRef(); 
+     * 这个addRef函数也被改写当，开启侦测的时候，跟踪资源的引用情况
      * @param prefab 要实例化的预制
      */
     public static instantiate(prefab: Prefab): Node {

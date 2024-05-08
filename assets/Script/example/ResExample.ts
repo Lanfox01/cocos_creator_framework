@@ -71,9 +71,11 @@ export default class NetExample extends Component {
             this.ress = [];
         }
     }
-
+    
+    // 加载不了， 地址不能用、
     onLoadRemote() {
-        resLoader.load("http://tools.itharbors.com/christmas/res/tree.png", (err: any, res: Texture2D | null) => {
+        //resLoader.load("http://tools.itharbors.com/christmas/res/tree.png", (err: any, res: Texture2D | null) => {
+        resLoader.loadRemote("http://pingtan.online:80/pic.png", (err: any, res: Texture2D | null) => {
             if (err || !res) return;
             this.remoteRes = res;
             let spriteFrame = new SpriteFrame();

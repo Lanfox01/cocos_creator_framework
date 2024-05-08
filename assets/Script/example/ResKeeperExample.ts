@@ -20,7 +20,7 @@ export default class NetExample extends Component {
     checker = new ResLeakChecker();
 
     start() {
-        this.checker.startCheck();
+        this.checker.startCheck(); // 开启这个，就会自定义 一般调试的情况可以开启，并且配合 ResUtil.instantiate(prefab) 实例化使用
     }
 
     onAdd() {
@@ -63,11 +63,15 @@ export default class NetExample extends Component {
         this.dumpLabel!.string = `当前资源总数:${assetManager.assets.count}`;
     }
 
+
+    // 在切换场景的时候 释放所有资源 那如果 恒定资源怎办？？
+
     onLoadClick() {
         this.checker.reset();
         director.loadScene("example_empty");
     }
 
+    // 这个好像不释放？
     onPreloadClick() {
         director.preloadScene("example_empty");    }
 }
