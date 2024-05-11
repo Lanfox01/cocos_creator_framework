@@ -36,7 +36,7 @@ export class ServerReplicator extends Component {
         }
         return null;
     }
-
+     // 用于生成同步数据
     public generateSyncData(): any {
         const syncData = [];
         const nodeSyncs = this.node.getComponentsInChildren(NodeSync);

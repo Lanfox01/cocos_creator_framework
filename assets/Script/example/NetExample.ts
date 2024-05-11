@@ -63,7 +63,7 @@ export default class NetExample extends Component {
     private lineCount: number = 0;
 
     onLoad() {
-        let Node = new NetNode();
+        let Node = new NetNode();  
         Node.init(new WebSock(), new DefStringProtocol(), new NetTips());
         Node.setResponeHandler(0, (cmd: number, data: NetData) => {
             if (this.lineCount > 5) {

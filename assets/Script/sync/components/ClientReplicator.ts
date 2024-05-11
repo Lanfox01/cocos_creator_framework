@@ -18,15 +18,16 @@ export class ClientReplicator extends Component {
         });
     }
 
+    //实现了一个异步方法 syncInstances，用于同步实例数据
     public async syncInstances(syncData: any[]) {
         for (const data of syncData) {
-            let instanceNode = this.instanceMap.get(data.instanceId);
-            if (!instanceNode) {
-                const prefab = await this.loadPrefab(data.prefabPath);
+            let instanceNode = this.instanceMap.get(data.instanceId);   // 从 instanceMap 中获取与当前数据对象匹配的实例节点 instanceNode 
+            if (!instanceNode) {                                        // 如果 instanceNode 不存在
+                const prefab = await this.loadPrefab(data.prefabPath);  // 方法异步加载预制资源，并等待加载完成。
                 instanceNode = instantiate(prefab);
                 const nodeSync = (instanceNode as Node).getComponent(NodeSync);
                 if (nodeSync) {
-                    nodeSync.setInstanceId(data.instanceId);
+                    nodeSync.setInstanceId(data.instanceId);            // 并将其添加到 instanceMap 中
                     nodeSync.setPrefabPath(data.prefabPath);
                     this.node.addChild(instanceNode);
                     this.instanceMap.set(data.instanceId, instanceNode);
@@ -36,7 +37,7 @@ export class ClientReplicator extends Component {
             if (data.data) {
                 const nodeSync = (instanceNode as Node).getComponent(NodeSync);
                 if (nodeSync) {
-                    nodeSync.applyDiff(data.data);
+                    nodeSync.applyDiff(data.data);              // 调用 NodeSync 组件的 applyDiff 方法，将同步数据中记录的差异数据应用到节上。
                 }
             }
             console.log(`sync instance ${data.instanceId}`);
